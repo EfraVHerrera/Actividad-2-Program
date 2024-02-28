@@ -38,13 +38,15 @@ const int NUM_LIBROS = 3;
 const int NUM_USUARIOS = 3;
 const int NUM_BIBLIOTECARIOS = 3;
 
+bool datosCargados = false; // Variable para verificar si los datos ya se han cargado
+
 // Funciones para generar datos aleatorios
 string obtenerElementoAleatorio(string arr[], int size) {
 	return arr[rand() % size];
 }
 
 int obtenerAnoAleatorio() {
-	return rand() % 50 + 1970; // Años aleatorios entre 1970 y 2019
+	return rand() % 50 + 1970; // AÃ±os aleatorios entre 1970 y 2019
 }
 
 string generarEmail(string nombre, string apellido) {
@@ -56,15 +58,16 @@ string generarFechaRegistro(string listaFechasRegistro[], int size) {
 }
 
 // Funciones para llenar las estructuras con datos aleatorios
-void llenarDatos(Libro libros[], string listaTitulos[], string listaNombres[], string listaApellidos[], string listaIdiomas[]) {
+void llenarDatos(Libro libros[], string listaTitulos[], string listaNombres[], string listaApellidos[], string listaIdiomas[], bool generarISBN) {
 	for (int i = 0; i < NUM_LIBROS; ++i) {
 		libros[i].titulo = obtenerElementoAleatorio(listaTitulos, NUM_LIBROS);
 		libros[i].autor = obtenerElementoAleatorio(listaNombres, 5) + " " + obtenerElementoAleatorio(listaApellidos, 5);
-		libros[i].ISBN = to_string(i + 1) + ",2,3,4,5"; // ISBN falso
+		if (generarISBN) // Solo generar ISBN si la opciÃ³n estÃ¡ habilitada
+			libros[i].ISBN = to_string(i + 1) + ",2,3,4,5"; // ISBN falso
 		libros[i].anoPublicacion = obtenerAnoAleatorio();
 		libros[i].idioma = obtenerElementoAleatorio(listaIdiomas, 8); // Se elige un idioma aleatorio
-		libros[i].edicion = rand() % 10 + 1; // Número de edición aleatorio entre 1 y 10
-		libros[i].numPaginas = rand() % 500 + 100; // Número de páginas aleatorio entre 100 y 599
+		libros[i].edicion = rand() % 10 + 1; // NÃºmero de ediciÃ³n aleatorio entre 1 y 10
+		libros[i].numPaginas = rand() % 500 + 100; // NÃºmero de pÃ¡ginas aleatorio entre 100 y 599
 	}
 }
 
@@ -88,7 +91,7 @@ void llenarDatos(Bibliotecario bibliotecarios[], string listaNombres[], string l
 	}
 }
 
-// Función para imprimir una fila de la tabla
+// FunciÃ³n para imprimir una fila de la tabla
 void imprimirFila(const string& columna1, const string& columna2, const string& columna3 = "", const string& columna4 = "", const string& columna5 = "") {
 	const int columna1Width = 20;
 	const int columna2Width = 20;
@@ -110,7 +113,7 @@ void imprimirFila(const string& columna1, const string& columna2, const string& 
 // Funciones para imprimir los datos de las estructuras en forma de tabla
 void imprimirDatos(Libro *libros, int cant) {
 	cout << "\n--- Listado de libros ---\n";
-	imprimirFila("Título", "Autor", "ISBN", "Año de Publicación", "Idioma");
+	imprimirFila("TÃ­tulo", "Autor", "ISBN", "AÃ±o de PublicaciÃ³n", "Idioma");
 	for (int i = 0; i < cant; ++i) {
 		imprimirFila(libros[i].titulo, libros[i].autor, libros[i].ISBN, to_string(libros[i].anoPublicacion), libros[i].idioma);
 	}
@@ -132,16 +135,20 @@ void imprimirDatos(Bibliotecario *bibliotecarios, int cant) {
 	}
 }
 
-// Submenú para el listado
+// SubmenÃº para el listado
 void submenuListado(Libro libros[], Usuario usuarios[], Bibliotecario bibliotecarios[]) {
+	if (!datosCargados) { // Verificar si los datos ya se han cargado
+		cout << "Primero debe cargar los datos.\n";
+		return;
+	}
 	char opcion;
 	do {
-		cout << "\n--- Submenú Listado ---\n";
+		cout << "\n--- SubmenÃº Listado ---\n";
 		cout << "A) Listado de libros\n";
 		cout << "B) Listado de usuarios\n";
 		cout << "C) Listado de bibliotecarios\n";
 		cout << "D) Salir\n";
-		cout << "Seleccione una opción: ";
+		cout << "Seleccione una opciÃ³n: ";
 		cin >> opcion;
 		
 		switch (opcion) {
@@ -155,29 +162,29 @@ void submenuListado(Libro libros[], Usuario usuarios[], Bibliotecario biblioteca
 			imprimirDatos(bibliotecarios, NUM_BIBLIOTECARIOS);
 			break;
 		case 'D':
-			cout << "Saliendo del submenú de listado...\n";
+			cout << "Saliendo del submenÃº de listado...\n";
 			break;
 		default:
-			cout << "Opción no válida. Por favor, seleccione una opción válida.\n";
+			cout << "OpciÃ³n no vÃ¡lida. Por favor, seleccione una opciÃ³n vÃ¡lida.\n";
 		}
 	} while (opcion != 'D');
 }
 
-// Función para buscar un libro por título
+// FunciÃ³n para buscar un libro por tÃ­tulo
 bool buscarLibro(Libro* libros, int cant, const string& titulo, int index = 0) {
 	bool encontrado = false;
 	for (int i = 0; i < cant; ++i) {
 		string tituloLibro = libros[i].titulo;
-		transform(tituloLibro.begin(), tituloLibro.end(), tituloLibro.begin(), ::tolower); // Convertir a minúsculas
-		size_t found = tituloLibro.find(titulo); // Buscar la primera palabra del título
+		transform(tituloLibro.begin(), tituloLibro.end(), tituloLibro.begin(), ::tolower); // Convertir a minÃºsculas
+		size_t found = tituloLibro.find(titulo); // Buscar la primera palabra del tÃ­tulo
 		if (found != string::npos && (found == 0 || tituloLibro[found - 1] == ' ')) {
-			cout << "Título: " << libros[i].titulo << endl;
+			cout << "TÃ­tulo: " << libros[i].titulo << endl;
 			cout << "Autor: " << libros[i].autor << endl;
 			cout << "ISBN: " << libros[i].ISBN << endl;
-			cout << "Año de Publicación: " << libros[i].anoPublicacion << endl;
+			cout << "AÃ±o de PublicaciÃ³n: " << libros[i].anoPublicacion << endl;
 			cout << "Idioma: " << libros[i].idioma << endl;
-			cout << "Edición: " << libros[i].edicion << endl;
-			cout << "Número de Páginas: " << libros[i].numPaginas << endl << endl;
+			cout << "EdiciÃ³n: " << libros[i].edicion << endl;
+			cout << "NÃºmero de PÃ¡ginas: " << libros[i].numPaginas << endl << endl;
 			encontrado = true;
 		}
 	}
@@ -185,12 +192,12 @@ bool buscarLibro(Libro* libros, int cant, const string& titulo, int index = 0) {
 }
 
 
-// Función para buscar un usuario por nombre
+// FunciÃ³n para buscar un usuario por nombre
 bool buscarUsuario(Usuario* usuarios, int cant, const string& nombre, int index = 0) {
 	bool encontrado = false;
 	for (int i = 0; i < cant; ++i) {
 		string nombreUsuario = usuarios[i].nombre;
-		transform(nombreUsuario.begin(), nombreUsuario.end(), nombreUsuario.begin(), ::tolower); // Convertir a minúsculas
+		transform(nombreUsuario.begin(), nombreUsuario.end(), nombreUsuario.begin(), ::tolower); // Convertir a minÃºsculas
 		size_t found = nombreUsuario.find(nombre); // Buscar coincidencias en el nombre del usuario
 		if (found != string::npos) {
 			cout << "ID: " << usuarios[i].userID << endl;
@@ -204,12 +211,12 @@ bool buscarUsuario(Usuario* usuarios, int cant, const string& nombre, int index 
 	return encontrado;
 }
 
-// Función para buscar un bibliotecario por nombre
+// FunciÃ³n para buscar un bibliotecario por nombre
 bool buscarBibliotecario(Bibliotecario* bibliotecarios, int cant, const string& nombre, int index = 0) {
 	bool encontrado = false;
 	for (int i = 0; i < cant; ++i) {
 		string nombreBibliotecario = bibliotecarios[i].nombre;
-		transform(nombreBibliotecario.begin(), nombreBibliotecario.end(), nombreBibliotecario.begin(), ::tolower); // Convertir a minúsculas
+		transform(nombreBibliotecario.begin(), nombreBibliotecario.end(), nombreBibliotecario.begin(), ::tolower); // Convertir a minÃºsculas
 		size_t found = nombreBibliotecario.find(nombre); // Buscar coincidencias en el nombre del bibliotecario
 		if (found != string::npos) {
 			cout << "ID: " << bibliotecarios[i].employeeID << endl;
@@ -223,29 +230,32 @@ bool buscarBibliotecario(Bibliotecario* bibliotecarios, int cant, const string& 
 	return encontrado;
 }
 
-
 //SUBMENU BUSQUEDA
 void submenuBusqueda(Libro libros[], Usuario usuarios[], Bibliotecario bibliotecarios[]) {
+	if (!datosCargados) { // Verificar si los datos ya se han cargado
+		cout << "Primero debe cargar los datos.\n";
+		return;
+	}
 	char opcion;
 	do {
-		cout << "\n--- Submenú Búsqueda ---\n";
-		cout << "A) Búsqueda de libro\n";
-		cout << "B) Búsqueda de usuario\n";
-		cout << "C) Búsqueda de bibliotecario\n";
+		cout << "\n--- SubmenÃº BÃºsqueda ---\n";
+		cout << "A) BÃºsqueda de libro\n";
+		cout << "B) BÃºsqueda de usuario\n";
+		cout << "C) BÃºsqueda de bibliotecario\n";
 		cout << "D) Salir\n";
-		cout << "Seleccione una opción: ";
+		cout << "Seleccione una opciÃ³n: ";
 		cin >> opcion;
 		
 		switch (opcion) {
 		case 'A': {
 			string titulo;
-			cout << "Ingrese el título del libro: ";
+			cout << "Ingrese el tÃ­tulo del libro: ";
 			cin.ignore();
 			getline(cin, titulo);
-			transform(titulo.begin(), titulo.end(), titulo.begin(), ::tolower);// Convertir a minúsculas
-			// Lógica para buscar libro por título
+			transform(titulo.begin(), titulo.end(), titulo.begin(), ::tolower);// Convertir a minÃºsculas
+			// LÃ³gica para buscar libro por tÃ­tulo
 			if (!buscarLibro(libros, NUM_LIBROS, titulo)) {
-				cout << "No se encontraron libros con esa primera palabra en el título.\n";
+				cout << "No se encontraron libros con esa primera palabra en el tÃ­tulo.\n";
 			}
 			break;
 		}
@@ -253,10 +263,10 @@ void submenuBusqueda(Libro libros[], Usuario usuarios[], Bibliotecario bibliotec
 			string nombre;
 			cout << "Ingrese el nombre del usuario: ";
 			cin >> nombre;
-			transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower); // Convertir a minúsculas
-			// Lógica para buscar usuario por nombre
+			transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower); // Convertir a minÃºsculas
+			// LÃ³gica para buscar usuario por nombre
 			if (!buscarUsuario(usuarios, NUM_USUARIOS, nombre)) {
-				cout << "No se encontró ningún usuario con ese nombre.\n";
+				cout << "No se encontrÃ³ ningÃºn usuario con ese nombre.\n";
 			}
 			break;
 		}
@@ -264,33 +274,33 @@ void submenuBusqueda(Libro libros[], Usuario usuarios[], Bibliotecario bibliotec
 			string nombre;
 			cout << "Ingrese el nombre del bibliotecario: ";
 			cin >> nombre;
-			transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower); // Convertir a minúsculas
-			// Lógica para buscar bibliotecario por nombre
+			transform(nombre.begin(), nombre.end(), nombre.begin(), ::tolower); // Convertir a minÃºsculas
+			// LÃ³gica para buscar bibliotecario por nombre
 			if (!buscarBibliotecario(bibliotecarios, NUM_BIBLIOTECARIOS, nombre)) {
-				cout << "No se encontró ningún bibliotecario con ese nombre.\n";
+				cout << "No se encontrÃ³ ningÃºn bibliotecario con ese nombre.\n";
 			}
 			break;
 		}
 		case 'D':
-			cout << "Saliendo del submenú de búsqueda...\n";
+			cout << "Saliendo del submenÃº de bÃºsqueda...\n";
 			break;
 		default:
-			cout << "Opción no válida. Por favor, seleccione una opción válida.\n";
+			cout << "OpciÃ³n no vÃ¡lida. Por favor, seleccione una opciÃ³n vÃ¡lida.\n";
 		}
 	} while (opcion != 'D');
 }
 
 int main() {
-	// Semilla para números aleatorios
+	// Semilla para nÃºmeros aleatorios
 	srand(time(0));
 	
 	// Arrays fijos de datos
-	string listaLibros[] = {"Aprende C", "Effective C++", "Programación en C++", "Curso de programación", "Modern C++", "Clean Code", "The Art of Computer Programming", "Programming Pearls", "Introduction to Algorithms"};
+	string listaLibros[] = {"Aprende C", "Effective C++", "ProgramaciÃ³n en C++", "Curso de programaciÃ³n", "Modern C++", "Clean Code", "The Art of Computer Programming", "Programming Pearls", "Introduction to Algorithms"};
 	string listaNombres[] = {"Juan", "Maria", "Pedro", "Ana", "Luis", "Efrain", "Jose", "Carlos", "Cristian"};
 	string listaApellidos[] = {"Garcia", "Martinez", "Lopez", "Gonzalez", "Rodriguez", "Edmundo", "Flores", "Ponce", "Herrera"};
-	string listaIdiomas[] = {"Español", "Inglés", "Francés", "Alemán", "Italiano", "Portugués", "Japonés", "Chino"};
+	string listaIdiomas[] = {"EspaÃ±ol", "InglÃ©s", "FrancÃ©s", "AlemÃ¡n", "Italiano", "PortuguÃ©s", "JaponÃ©s", "Chino"};
 	string listaFechasRegistro[] = {"01/01/2020", "15/03/2021", "30/06/2022", "26/06/2019"};
-	string listaCargos[] = {"Bibliotecario jefe", "Bibliotecario Asistente", "Bibliotecario Junior", "Bibliotecario de tecnología de la información", "Bibliotecario de archivos y preservación"};
+	string listaCargos[] = {"Bibliotecario jefe", "Bibliotecario Asistente", "Bibliotecario Junior", "Bibliotecario de tecnologÃ­a de la informaciÃ³n", "Bibliotecario de archivos y preservaciÃ³n"};
 	
 	// Generar estructuras
 	Libro libros[NUM_LIBROS];
@@ -298,26 +308,25 @@ int main() {
 	Bibliotecario bibliotecarios[NUM_BIBLIOTECARIOS];
 	
 	
-	// Menú principal
+	// MenÃº principal
 	char opcion;
 	do {
-		cout << "\n--- Menú Principal ---\n";
+		cout << "\n--- MenÃº Principal ---\n";
 		cout << "1. Llenado de datos\n";
 		cout << "2. Listado\n";
-		cout << "3. Búsqueda\n";
+		cout << "3. BÃºsqueda\n";
 		cout << "4. Salir\n";
-		cout << "Seleccione una opción: ";
+		cout << "Seleccione una opciÃ³n: ";
 		cin >> opcion;
 		
 		switch (opcion) {
 		case '1':
 			// Generar datos de libros, usuarios y bibliotecarios
-			llenarDatos(libros, listaLibros, listaNombres, listaApellidos, listaIdiomas);
+			llenarDatos(libros, listaLibros, listaNombres, listaApellidos, listaIdiomas, true); // La opciÃ³n true indica que se generarÃ¡ el ISBN
 			llenarDatos(usuarios, listaNombres, listaApellidos, listaFechasRegistro, sizeof(listaFechasRegistro) / sizeof(listaFechasRegistro[0]));
 			llenarDatos(bibliotecarios, listaNombres, listaApellidos, listaCargos, sizeof(listaCargos) / sizeof(listaCargos[0]));
+			datosCargados = true; // Establecer que los datos se han cargado
 			cout << "Datos generados exitosamente.\n";
-			break;
-			
 			break;
 		case '2':
 			submenuListado(libros, usuarios, bibliotecarios);
@@ -329,7 +338,7 @@ int main() {
 			cout << "Saliendo del programa...\n";
 			break;
 		default:
-			cout << "Opción no válida. Por favor, seleccione una opción válida.\n";
+			cout << "OpciÃ³n no vÃ¡lida. Por favor, seleccione una opciÃ³n vÃ¡lida.\n";
 		}
 	} while (opcion != '4');
 	
